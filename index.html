@@ -2,43 +2,62 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Elastic Emoji/Text Cursor Picker</title>
+  <title>Elastic Emoji/Text Cursor Picker with Dark Mode</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <style>
     html, body {
       height: 100vh;
       margin: 0;
       padding: 0;
-      background: #fff;
-      overflow: hidden;
-      touch-action: none;
       font-family: Arial, sans-serif;
       -webkit-user-select: none;
       user-select: none;
+      overflow: hidden;
+      touch-action: none;
+      background: #fff;
+      color: #000;
+      transition: background-color 0.3s, color 0.3s;
     }
-    /* Updated button position and styling */
+    @media (prefers-color-scheme: dark) {
+      html, body {
+        background: #111;
+        color: #eee;
+      }
+      .picker-container {
+        background: #222;
+        border-color: #444;
+        box-shadow: 0 2px 15px #000a;
+      }
+      button, .emoji-link {
+        background: #333;
+        border-color: #555;
+        color: #eee;
+      }
+      button:hover, button:focus, .emoji-link:hover, .emoji-link:focus {
+        background: #555;
+      }
+    }
+    /* Settings button container top-left */
     #open-menu {
       position: fixed;
-      top: 20px;  /* moved to top */
-      right: 20px; /* moved to right */
-      background: #eef;
-      border: 1px solid #bbb;
-      border-radius: 12px; /* rounded rectangle */
+      top: 20px;
+      left: 20px;
+      z-index: 50;
       width: 48px;
       height: 48px;
+      padding: 0;
+      border: none;
+      background: none;
       cursor: pointer;
-      box-shadow: 0 2px 8px #0002;
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 30;
-      transition: background 0.2s;
-      padding: 6px;  /* some padding so icon fits nicely */
-      font-size: 0;  /* hide potential text fallback */
+      border-radius: 12px;
+      transition: background-color 0.2s ease;
     }
     #open-menu:hover,
     #open-menu:focus {
-      background: #dde9ff;
+      background-color: rgba(100, 149, 237, 0.2);
       outline: none;
     }
     .picker-container {
@@ -46,7 +65,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      z-index: 10;
+      z-index: 40;
       background: #fcfcfc;
       padding: 18px 32px 26px 32px;
       border-radius: 18px;
@@ -58,6 +77,8 @@
       gap: 14px;
       min-width: 280px;
       user-select: none;
+      color: inherit;
+      transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
     }
     .emoji-row {
       display: flex;
@@ -76,6 +97,8 @@
       outline-offset: 2px;
       width: 180px;
       box-sizing: border-box;
+      transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+      color: inherit;
     }
     button,
     .emoji-link {
@@ -87,7 +110,7 @@
       background: #eef;
       user-select: none;
       min-width: 160px;
-      transition: background 0.3s ease;
+      transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
       text-align: center;
       display: block;
       color: #333;
@@ -99,12 +122,14 @@
       background: #dde9ff;
       outline: none;
       text-decoration: none;
+      color: inherit;
     }
     .emoji-link {
       background: #fff7db;
       border: 1px solid #ccc;
       font-weight: 600;
       color: #333;
+      transition: background-color 0.3s ease;
     }
     .emoji-link:hover {
       background: #fff3b3;
@@ -113,14 +138,23 @@
   </style>
 </head>
 <body>
-  <button id="open-menu" title="Open Emoji menu" aria-label="Open menu">
-    <!-- Gear SVG icon -->
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-      stroke-linejoin="round" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false">
-      <circle cx="12" cy="12" r="3"></circle>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+  <!-- Settings Button with Auto Light/Dark SVG -->
+  <button id="open-menu" aria-label="Open Emoji/Text settings menu" title="Open Settings">
+    <!-- Light mode SVG -->
+    <svg id="icon-light" width="32" height="32" viewBox="0 0 250 250" style="fill:#151513; color:#fff; display: none;" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"/>
+      <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"/>
+      <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"/>
+    </svg>
+
+    <!-- Dark mode SVG -->
+    <svg id="icon-dark" width="32" height="32" viewBox="0 0 250 250" style="fill:#fff; color:#151513;" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"/>
+      <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"/>
+      <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"/>
     </svg>
   </button>
+
   <div class="picker-container" id="picker-container" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="emoji-row">
       <input id="emoji" class="emoji-input" value="🤸‍♂️" maxlength="10" autocomplete="off" aria-label="Emoji or text input" />
@@ -131,8 +165,17 @@
     </a>
     <button id="close-menu">Close</button>
   </div>
-  <script src="bounce.js"></script>
+  <script src="https://unpkg.com/cursor-effects@latest/dist/browser.js"></script>
   <script>
+    // Mode toggling of SVG icons
+    function updateIcon() {
+      const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.getElementById('icon-light').style.display = isDark ? 'none' : 'block';
+      document.getElementById('icon-dark').style.display = isDark ? 'block' : 'none';
+    }
+    updateIcon();
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateIcon);
+
     let effectInstance = null;
     const pickerMenu = document.getElementById('picker-container');
     const openBtn = document.getElementById('open-menu');
@@ -164,10 +207,9 @@
     };
 
     // Prevent scrolling/zoom/etc
-    document.body.addEventListener("wheel", e => e.preventDefault(), { passive: false });
-    document.body.addEventListener("gesturestart", e => e.preventDefault(), { passive: false });
-    document.body.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
-    document.body.addEventListener("scroll", e => window.scrollTo(0, 0), { passive: false });
+    ['wheel', 'gesturestart', 'touchmove', 'scroll'].forEach(evt => {
+      document.body.addEventListener(evt, e => e.preventDefault(), { passive: false });
+    });
   </script>
 </body>
 </html>
