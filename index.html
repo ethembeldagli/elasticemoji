@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Elastic Emoji/Text Cursor Picker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <style>
+    html, body {
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      overflow: hidden;
+      touch-action: none;
+      font-family: Arial, sans-serif;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    /* Updated button position and styling */
+    #open-menu {
+      position: fixed;
+      top: 20px;  /* moved to top */
+      right: 20px; /* moved to right */
+      background: #eef;
+      border: 1px solid #bbb;
+      border-radius: 12px; /* rounded rectangle */
+      width: 48px;
+      height: 48px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px #0002;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 30;
+      transition: background 0.2s;
+      padding: 6px;  /* some padding so icon fits nicely */
+      font-size: 0;  /* hide potential text fallback */
+    }
+    #open-menu:hover,
+    #open-menu:focus {
+      background: #dde9ff;
+      outline: none;
+    }
+    .picker-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      background: #fcfcfc;
+      padding: 18px 32px 26px 32px;
+      border-radius: 18px;
+      box-shadow: 0 2px 15px #0003;
+      border: 1px solid #ddd;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      min-width: 280px;
+      user-select: none;
+    }
+    .emoji-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+    .emoji-input {
+      font-size: 32px;
+      flex-grow: 1;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      padding: 8px 8px;
+      user-select: text;
+      outline-offset: 2px;
+      width: 180px;
+      box-sizing: border-box;
+    }
+    button,
+    .emoji-link {
+      font-size: 18px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid #bbb;
+      cursor: pointer;
+      background: #eef;
+      user-select: none;
+      min-width: 160px;
+      transition: background 0.3s ease;
+      text-align: center;
+      display: block;
+      color: #333;
+    }
+    button:focus,
+    button:hover,
+    .emoji-link:focus,
+    .emoji-link:hover {
+      background: #dde9ff;
+      outline: none;
+      text-decoration: none;
+    }
+    .emoji-link {
+      background: #fff7db;
+      border: 1px solid #ccc;
+      font-weight: 600;
+      color: #333;
+    }
+    .emoji-link:hover {
+      background: #fff3b3;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <button id="open-menu" title="Open Emoji menu" aria-label="Open menu">
+    <!-- Gear SVG icon -->
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+      stroke-linejoin="round" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
+  </button>
+  <div class="picker-container" id="picker-container" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="emoji-row">
+      <input id="emoji" class="emoji-input" value="🤸‍♂️" maxlength="10" autocomplete="off" aria-label="Emoji or text input" />
+      <button id="set-emoji">Set</button>
+    </div>
+    <a class="emoji-link" href="https://getemoji.com/" target="_blank" rel="noopener noreferrer">
+      Copy emojis here
+    </a>
+    <button id="close-menu">Close</button>
+  </div>
+  <script src="bounce.js"></script>
+  <script>
+    let effectInstance = null;
+    const pickerMenu = document.getElementById('picker-container');
+    const openBtn = document.getElementById('open-menu');
+    const closeBtn = document.getElementById('close-menu');
+    const emojiInput = document.getElementById('emoji');
+
+    function setCursorEffect(val) {
+      if (effectInstance) effectInstance.destroy();
+      effectInstance = new cursoreffects.springyEmojiCursor({
+        emoji: val
+      });
+    }
+    setCursorEffect(emojiInput.value);
+
+    document.getElementById('set-emoji').onclick = function() {
+      let val = emojiInput.value.slice(0, 10) || "🤸‍♂️";
+      setCursorEffect(val);
+    };
+
+    openBtn.onclick = function() {
+      pickerMenu.style.display = "flex";
+      pickerMenu.setAttribute('aria-hidden', 'false');
+      openBtn.style.display = "none";
+    };
+    closeBtn.onclick = function() {
+      pickerMenu.style.display = "none";
+      pickerMenu.setAttribute('aria-hidden', 'true');
+      openBtn.style.display = "flex";
+    };
+
+    // Prevent scrolling/zoom/etc
+    document.body.addEventListener("wheel", e => e.preventDefault(), { passive: false });
+    document.body.addEventListener("gesturestart", e => e.preventDefault(), { passive: false });
+    document.body.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
+    document.body.addEventListener("scroll", e => window.scrollTo(0, 0), { passive: false });
+  </script>
+</body>
+</html>
