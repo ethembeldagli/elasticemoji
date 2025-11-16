@@ -66,25 +66,29 @@
   text-align: center;
   z-index: 10;
   user-select: none;
-  pointer-events: none;
   color: inherit;
-  white-space: nowrap; /* optional if you want single-line text centered */
-  max-width: 90vw; /* optional to prevent overflow */
+  white-space: nowrap;
+  max-width: 90vw;
 }
-    #info-text p {
-      margin: 0.25rem 0;
-      font-size: 1rem;
-      font-weight: 600;
-    }
-    #info-text a {
-      color: #3b82f6;
-      text-decoration: underline;
-    }
-    @media (prefers-color-scheme: dark) {
-      #info-text a {
-        color: #60a5fa;
-      }
-    }
+
+#info-text p {
+  margin: 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  pointer-events: none; /* make text non-interactive */
+}
+
+#info-text a {
+  color: #3b82f6;
+  text-decoration: underline;
+  pointer-events: auto;
+}
+@media (prefers-color-scheme: dark) {
+  #info-text a {
+    color: #60a5fa;
+  }
+}
+
 
     .picker-container {
       position: fixed;
